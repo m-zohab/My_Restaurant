@@ -11,6 +11,7 @@ app = Flask(__name__)
 engine = create_engine('sqlite:///my_restaurant_v2.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
+Base.metadata.create_all(engine)
 
 def get_session():
     return DBSession()
