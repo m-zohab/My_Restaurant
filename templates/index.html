@@ -1,0 +1,546 @@
+{% extends "base.html" %}
+{% block title %}{{ restaurant.name }} — Home{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ─── HERO ─── */
+    .hero {
+        background: var(--deep);
+        min-height: 88vh;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(ellipse 60% 70% at 80% 50%, rgba(232,160,69,0.12) 0%, transparent 70%),
+            radial-gradient(ellipse 40% 40% at 20% 80%, rgba(232,160,69,0.06) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    .hero-orb {
+        position: absolute;
+        right: 8%;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 340px;
+        height: 340px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 40% 40%, rgba(244,192,122,0.22), rgba(232,160,69,0.08) 60%, transparent);
+        border: 1px solid rgba(232,160,69,0.15);
+        animation: pulse-orb 4s ease-in-out infinite;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 7rem;
+        filter: drop-shadow(0 0 40px rgba(232,160,69,0.3));
+    }
+
+    @keyframes pulse-orb {
+        0%, 100% { transform: translateY(-50%) scale(1); opacity: 0.9; }
+        50% { transform: translateY(-50%) scale(1.04); opacity: 1; }
+    }
+
+    .hero-content { position: relative; z-index: 2; }
+
+    .hero-tag {
+        display: inline-block;
+        background: rgba(232,160,69,0.15);
+        border: 1px solid rgba(232,160,69,0.35);
+        color: var(--ember-glow);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        padding: 0.35rem 0.9rem;
+        border-radius: 20px;
+        margin-bottom: 1.2rem;
+    }
+
+    .hero h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2.8rem, 5vw, 4.5rem);
+        font-weight: 900;
+        color: var(--white);
+        line-height: 1.1;
+        margin-bottom: 1rem;
+    }
+
+    .hero h1 em {
+        color: var(--ember);
+        font-style: normal;
+    }
+
+    .hero p {
+        color: rgba(255,255,255,0.6);
+        font-size: 1.05rem;
+        max-width: 440px;
+        line-height: 1.7;
+        margin-bottom: 2rem;
+    }
+
+    .hero-address {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: rgba(255,255,255,0.4);
+        font-size: 0.85rem;
+        margin-top: 1.5rem;
+    }
+
+    .hero-address i { color: var(--ember); }
+
+    /* ─── MENU SECTION ─── */
+    .menu-section {
+        padding: 5rem 0 3rem;
+    }
+
+    .menu-card {
+        background: var(--white);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        height: 100%;
+        transition: all 0.25s;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .menu-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 3px;
+        background: var(--ember);
+        transform: scaleX(0);
+        transition: transform 0.25s;
+        transform-origin: left;
+    }
+
+    .menu-card:hover {
+        border-color: var(--ember);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(232,160,69,0.15);
+    }
+
+    .menu-card:hover::after { transform: scaleX(1); }
+
+    .menu-card.selected {
+        border-color: var(--ember);
+        background: #FFFBF3;
+        box-shadow: 0 4px 20px rgba(232,160,69,0.2);
+    }
+
+    .menu-card.selected::after { transform: scaleX(1); }
+
+    .item-icon {
+        width: 44px;
+        height: 44px;
+        background: rgba(232,160,69,0.1);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+    }
+
+    .item-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--deep);
+        margin-bottom: 0.3rem;
+    }
+
+    .item-desc {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin-bottom: 1rem;
+    }
+
+    .item-price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--ember-dim);
+    }
+
+    .item-price span { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; }
+
+    .qty-control {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+
+    .qty-btn {
+        width: 30px; height: 30px;
+        border-radius: 50%;
+        border: 1.5px solid var(--ember);
+        background: transparent;
+        color: var(--ember);
+        font-size: 1rem;
+        line-height: 1;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.15s;
+    }
+
+    .qty-btn:hover { background: var(--ember); color: var(--deep); }
+
+    .qty-num {
+        font-weight: 600;
+        min-width: 24px;
+        text-align: center;
+        font-size: 1rem;
+        color: var(--deep);
+    }
+
+    /* ─── ORDER SIDEBAR ─── */
+    .order-sidebar {
+        position: sticky;
+        top: 80px;
+        background: var(--white);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .sidebar-header {
+        background: var(--deep);
+        color: var(--white);
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .sidebar-header h5 {
+        font-family: 'Playfair Display', serif;
+        margin: 0;
+        font-size: 1.1rem;
+        color: var(--ember-glow);
+    }
+
+    .sidebar-body { padding: 1.25rem 1.5rem; }
+
+    .order-form .form-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 0.35rem;
+    }
+
+    .order-form .form-control, .order-form .form-select {
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        padding: 0.55rem 0.85rem;
+        background: var(--cream-soft);
+        color: var(--deep);
+        transition: border-color 0.2s;
+    }
+
+    .order-form .form-control:focus {
+        border-color: var(--ember);
+        box-shadow: 0 0 0 3px rgba(232,160,69,0.12);
+    }
+
+    .cart-items { min-height: 60px; }
+
+    .cart-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.875rem;
+    }
+
+    .cart-item:last-child { border-bottom: none; }
+
+    .cart-item-name { font-weight: 500; color: var(--deep); }
+    .cart-item-qty { color: var(--text-muted); font-size: 0.78rem; }
+    .cart-item-price { font-weight: 600; color: var(--ember-dim); }
+
+    .bill-total {
+        background: var(--deep);
+        border-radius: 8px;
+        padding: 0.9rem 1.1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 1rem 0;
+    }
+
+    .bill-total .label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.6);
+    }
+
+    .bill-total .amount {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--ember);
+    }
+
+    .empty-cart {
+        text-align: center;
+        padding: 1.5rem 0;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .empty-cart i { font-size: 2rem; margin-bottom: 0.5rem; display: block; opacity: 0.4; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-orb">🪔</div>
+    <div class="container">
+        <div class="hero-content col-lg-7">
+            <div class="hero-tag">✦ Est. Gulberg, Lahore</div>
+            <h1>Where the City<br>Slows Down, <em>Taste Wakes Up</em></h1>
+            <p>A night cafe that blends Lahori warmth with bold flavours — from smoky biryani to cold mint drafts. Order right from your table.</p>
+            <a href="#menu" class="btn btn-ember me-3">
+                <i class="bi bi-grid me-2"></i>See Menu
+            </a>
+            <a href="/orders" class="btn btn-night">
+                <i class="bi bi-receipt me-2"></i>Track Orders
+            </a>
+            <div class="hero-address">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span>{{ restaurant.address if restaurant else 'Gulberg, Lahore' }}</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MENU + ORDER SECTION -->
+<section class="menu-section" id="menu">
+    <div class="container">
+
+        <!-- Heading -->
+        <div class="row mb-4 fade-up">
+            <div class="col-lg-8">
+                <div class="section-eyebrow">Our Menu</div>
+                <h2 class="section-heading" style="font-size:2.2rem;">Tonight's <em style="color:var(--ember);font-style:normal;">Favourites</em></h2>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- MENU CARDS -->
+            <div class="col-lg-8">
+                <div class="row g-3" id="menuGrid">
+                    {% for item in menu_items %}
+                    {% set icons = ['🍛','🍔','🥤','🍕','🍜','🥘','🫖','🍱'] %}
+                    <div class="col-sm-6 col-xl-4 fade-up" style="transition-delay: {{ loop.index0 * 0.07 }}s">
+                        <div class="menu-card" id="card-{{ item.id }}" onclick="toggleItem({{ item.id }}, '{{ item.item_name }}', {{ item.price }})">
+                            <div class="item-icon">{{ icons[loop.index0 % icons|length] }}</div>
+                            <div class="item-name">{{ item.item_name }}</div>
+                            <div class="item-desc">{{ item.description }}</div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div class="item-price">Rs {{ '{:,.0f}'.format(item.price) }} <span>/serving</span></div>
+                            </div>
+                            <div class="qty-control d-none" id="qty-{{ item.id }}">
+                                <button class="qty-btn" onclick="event.stopPropagation(); changeQty({{ item.id }}, {{ item.price }}, -1)">−</button>
+                                <span class="qty-num" id="qnum-{{ item.id }}">1</span>
+                                <button class="qty-btn" onclick="event.stopPropagation(); changeQty({{ item.id }}, {{ item.price }}, 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12">
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-emoji-frown" style="font-size:2.5rem;"></i>
+                            <p class="mt-2">No menu items yet. Add some from Admin panel.</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- ORDER SIDEBAR -->
+            <div class="col-lg-4 fade-up" style="transition-delay:0.2s">
+                <div class="order-sidebar">
+                    <div class="sidebar-header">
+                        <i class="bi bi-bag-heart-fill" style="color:var(--ember)"></i>
+                        <h5>Your Order</h5>
+                    </div>
+
+                    <div class="sidebar-body">
+                        <!-- Customer Info -->
+                        <div class="order-form mb-3">
+                            <div class="mb-3">
+                                <label class="form-label">Your Name</label>
+                                <input type="text" class="form-control" id="custName" placeholder="e.g. Ali Raza">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Table No.</label>
+                                <input type="number" class="form-control" id="tableNo" placeholder="e.g. 5" min="1">
+                            </div>
+                        </div>
+
+                        <hr style="border-color:var(--border)">
+                        <p class="section-eyebrow mb-2">Selected Items</p>
+
+                        <div class="cart-items" id="cartItems">
+                            <div class="empty-cart" id="emptyCart">
+                                <i class="bi bi-cart3"></i>
+                                Tap a menu item to add it
+                            </div>
+                        </div>
+
+                        <div class="bill-total" id="billBox" style="display:none;">
+                            <span class="label">Total Bill</span>
+                            <span class="amount" id="billAmt">Rs 0</span>
+                        </div>
+
+                        <button class="btn btn-ember w-100 mt-2" onclick="placeOrder()" style="padding:0.75rem;">
+                            <i class="bi bi-check2-circle me-2"></i>Place Order
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- SUCCESS TOAST -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="orderToast" class="toast align-items-center text-white border-0" role="alert" style="background:var(--deep);border-left:4px solid var(--ember) !important;">
+        <div class="d-flex">
+            <div class="toast-body" id="toastMsg">Order placed!</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let cart = {}; // { id: { name, price, qty } }
+
+function toggleItem(id, name, price) {
+    if (cart[id]) {
+        // Already in cart — just highlight
+        return;
+    }
+    cart[id] = { name, price, qty: 1 };
+    document.getElementById('card-' + id).classList.add('selected');
+    document.getElementById('qty-' + id).classList.remove('d-none');
+    renderCart();
+}
+
+function changeQty(id, price, delta) {
+    if (!cart[id]) return;
+    cart[id].qty += delta;
+    if (cart[id].qty <= 0) {
+        delete cart[id];
+        document.getElementById('card-' + id).classList.remove('selected');
+        document.getElementById('qty-' + id).classList.add('d-none');
+        document.getElementById('qnum-' + id).textContent = 1;
+    } else {
+        document.getElementById('qnum-' + id).textContent = cart[id].qty;
+    }
+    renderCart();
+}
+
+function renderCart() {
+    const container = document.getElementById('cartItems');
+    const empty = document.getElementById('emptyCart');
+    const billBox = document.getElementById('billBox');
+    const keys = Object.keys(cart);
+
+    if (keys.length === 0) {
+        container.innerHTML = '<div class="empty-cart" id="emptyCart"><i class="bi bi-cart3"></i>Tap a menu item to add it</div>';
+        billBox.style.display = 'none';
+        return;
+    }
+
+    let total = 0;
+    let html = '';
+    keys.forEach(id => {
+        const item = cart[id];
+        const sub = item.price * item.qty;
+        total += sub;
+        html += `
+        <div class="cart-item">
+            <div>
+                <div class="cart-item-name">${item.name}</div>
+                <div class="cart-item-qty">× ${item.qty}</div>
+            </div>
+            <div class="cart-item-price">Rs ${sub.toLocaleString('en-PK', {maximumFractionDigits:0})}</div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+    billBox.style.display = 'flex';
+    document.getElementById('billAmt').textContent = 'Rs ' + total.toLocaleString('en-PK', {maximumFractionDigits:0});
+}
+
+async function placeOrder() {
+    const name = document.getElementById('custName').value.trim();
+    const table = document.getElementById('tableNo').value.trim();
+    const keys = Object.keys(cart);
+
+    if (!name) { showToast('⚠️ Please enter your name.', true); return; }
+    if (!table) { showToast('⚠️ Please enter table number.', true); return; }
+    if (keys.length === 0) { showToast('⚠️ Add at least one item.', true); return; }
+
+    const items = keys.map(id => ({ item_id: parseInt(id), quantity: cart[id].qty }));
+
+    try {
+        const res = await fetch('/place_order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ customer_name: name, table_no: parseInt(table), items })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showToast(`✅ Order #${data.order_id} placed! Bill: Rs ${data.total_bill.toLocaleString()}`);
+            // Reset
+            cart = {};
+            document.querySelectorAll('.menu-card.selected').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.qty-control').forEach(el => el.classList.add('d-none'));
+            document.querySelectorAll('.qty-num').forEach(el => el.textContent = '1');
+            document.getElementById('custName').value = '';
+            document.getElementById('tableNo').value = '';
+            renderCart();
+        } else {
+            showToast('❌ ' + (data.error || 'Something went wrong.'), true);
+        }
+    } catch (e) {
+        showToast('❌ Network error. Try again.', true);
+    }
+}
+
+function showToast(msg, isError = false) {
+    const el = document.getElementById('orderToast');
+    document.getElementById('toastMsg').textContent = msg;
+    el.style.borderLeftColor = isError ? '#dc3545' : 'var(--ember)';
+    const toast = new bootstrap.Toast(el, { delay: 4000 });
+    toast.show();
+}
+</script>
+{% endblock %}
