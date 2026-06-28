@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Lahore Night Cafe{% endblock %}</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --night: #0F0F1A;
+            --deep: #1A1A2E;
+            --ember: #E8A045;
+            --ember-glow: #F4C07A;
+            --ember-dim: #B87830;
+            --cream: #F5EDD6;
+            --cream-soft: #FAF6EE;
+            --green: #2D5016;
+            --green-light: #3D6B1F;
+            --text-main: #1A1A2E;
+            --text-muted: #6B6B80;
+            --border: #E8E0D0;
+            --white: #FAFAF8;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--cream-soft);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        /* ─── NAVBAR ─── */
+        .lnc-nav {
+            background: var(--deep);
+            border-bottom: 2px solid var(--ember);
+            padding: 0.75rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .lnc-nav .brand {
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: 1.4rem;
+            color: var(--ember) !important;
+            text-decoration: none;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lnc-nav .brand .lantern {
+            font-size: 1.5rem;
+            animation: flicker 3s ease-in-out infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; text-shadow: 0 0 8px var(--ember-glow); }
+            50% { opacity: 0.8; text-shadow: 0 0 20px var(--ember-glow), 0 0 40px var(--ember); }
+        }
+
+        .lnc-nav .nav-link {
+            color: rgba(255,255,255,0.75) !important;
+            font-size: 0.875rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.5rem 1rem !important;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .lnc-nav .nav-link:hover,
+        .lnc-nav .nav-link.active {
+            color: var(--ember) !important;
+            background: rgba(232, 160, 69, 0.1);
+        }
+
+        .lnc-nav .nav-link i { margin-right: 0.35rem; }
+
+        /* ─── FOOTER ─── */
+        .lnc-footer {
+            background: var(--deep);
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.8rem;
+            margin-top: 4rem;
+        }
+
+        .lnc-footer span { color: var(--ember); }
+
+        /* ─── BUTTONS ─── */
+        .btn-ember {
+            background: var(--ember);
+            color: var(--deep);
+            border: none;
+            font-weight: 600;
+            font-size: 0.875rem;
+            padding: 0.6rem 1.5rem;
+            border-radius: 6px;
+            letter-spacing: 0.03em;
+            transition: all 0.2s;
+        }
+        .btn-ember:hover {
+            background: var(--ember-glow);
+            color: var(--deep);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(232,160,69,0.4);
+        }
+
+        .btn-night {
+            background: var(--deep);
+            color: var(--cream);
+            border: 1.5px solid var(--ember);
+            font-weight: 500;
+            font-size: 0.875rem;
+            padding: 0.55rem 1.4rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .btn-night:hover {
+            background: var(--ember);
+            color: var(--deep);
+        }
+
+        /* ─── SECTION HEADING ─── */
+        .section-eyebrow {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--ember);
+            margin-bottom: 0.4rem;
+        }
+
+        .section-heading {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            color: var(--deep);
+            line-height: 1.15;
+        }
+
+        /* ─── TOAST ─── */
+        .toast-container { z-index: 9999; }
+
+        /* ─── ANIMATIONS ─── */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="lnc-nav">
+    <div class="container d-flex align-items-center justify-content-between">
+        <a href="/" class="brand">
+            <span class="lantern">🪔</span>
+            Lahore Night Cafe
+        </a>
+        <ul class="nav mb-0">
+            <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/"><i class="bi bi-house"></i>Home</a></li>
+            <li class="nav-item"><a class="nav-link {% if '/orders' in request.path %}active{% endif %}" href="/orders"><i class="bi bi-receipt"></i>Orders</a></li>
+            <li class="nav-item"><a class="nav-link {% if '/admin' in request.path %}active{% endif %}" href="/admin"><i class="bi bi-sliders"></i>Admin</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+{% block content %}{% endblock %}
+
+<!-- FOOTER -->
+<footer class="lnc-footer">
+    <p class="mb-0">© 2025 <span>Lahore Night Cafe</span> · Gulberg, Lahore &nbsp;·&nbsp; Made with <span>♥</span></p>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Fade-up on scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
